@@ -1,0 +1,86 @@
+% !TEX root = ../main.tex
+
+\chapter{Experiments} % (fold)
+\label{cha:Experiments}
+
+\section{Misinformation Dataset}
+
+FakeNewsNet is dataset made of political \textit{tweets} collected from the Twitter social media.
+The entities present in this social network are heterogeneous. 
+An entity can be a user, a news agency or a source.
+
+The data contains interactions and reactions to news article posted by various news account.
+An edge between two entity represents an interaction.
+Interactions can be between entities of the same or different type: user to user, news to user, source to news, and so on.
+
+Users reaction to the information presented can be positive, neutral or negative.
+Each news \textit{tweet} can be either fake or real. 
+The corresponding labels are available for each news.
+
+\section{Introduction to DeepWalk}
+
+DeepWalk allows to to learn latent representations of vertices in a social network.
+It performs random walks in a graph to learn latent features.
+The skipgram model is used to perform word embedding, in a similar fashion as word2vec.
+
+\section{From Heterogeneous to Homogeneous}
+
+DeepWalk only performs the embedding on homogeneous entities represented by integers.
+Because our data is heterogeneous, we first need to assign a unique value to each entity.
+
+Using the available entity list, each entity is given a unique identifier.
+This is then mapped to the edgelists of all entities interactions.
+
+We then build the graph using the homogeneous network. 
+This simplify computing the adjacency list for each entity.
+
+\section{DeepWalk With Disinformation Data and Parameters Sensitivity}
+
+DeepWalk can now use the adjacency list to perform the graph embedding.
+The embedding is obtained with the entire network; 
+scoring is however only performed with the news sources.
+
+Once the embedding is obtained, the users and news entities are then removed from the embedding.
+The embedding is then analyzed and compared with each news label.
+
+To obtain the best performance, the parameters of the program are tuned one after the other.
+First tuning one of them with all the others set to default, and then another one using the best value obtained for the previous run.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/deepwalk/deepwalk-plot-dimensions-window-size.pgf}}
+        \label{fig:deepwalk:representation and window size}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/deepwalk/deepwalk-plot-number-length-walk.pgf}}
+        \label{fig:deepwalk:number and walk length}
+    \end{subfigure}
+    \caption{DeepWalk and FakeNewsNet results.}
+    \label{fig:deepwalk:plots}
+\end{figure}
+
+\section{Node2vec}
+Similarly to DeepWalk, node2vec also allows to represent a network as a spatial representation.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/node2vec/node2vec-plot-dimensions-window-size.pgf}}
+        \label{fig:node2vec:representation and window size}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/node2vec/node2vec-plot-dimensions-window-size.pgf}}
+        \label{fig:node2vec:number and walk length}
+        \caption{Placeholder since plot is missing.}
+    \end{subfigure}
+    \caption{Node2vec and FakeNewsNet results.}
+    \label{fig:deepwalk:plots}
+\end{figure}
+
