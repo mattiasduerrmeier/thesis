@@ -1,0 +1,136 @@
+% !TEX root = ../main.tex
+
+\chapter{Dataset} % (fold)
+\label{cha:Dataset}
+
+\section{Misinformation Dataset}
+
+FakeNewsNet is a dataset collected from the Twitter social media platform, made of political \textit{tweets}.
+The original dataset along with its paper was first published in September of 2018.
+In this thesis, we specifically work with a pre-processed subset of this dataset, made available alongside the Factual News Graph (FANG) source code. We will refer to this datset as the misinformation dataset.
+
+This misinformation dataset is a heterogeneous network: the vertices are not all of a same and unique type.
+An entity can be of type user, news article or news source.
+Edges can be between entities of the same or different type.
+This dataset contains over 3 millions edges, named interactions in this context.
+
+\begin{table}[h]
+    \centering
+    \caption{Statistics about the misinformation network.}
+    \label{tab:dataset:network}
+    \begin{tabular}{cc}
+        \toprule
+        $|V|$ & 55957\\
+        $|E|$ & 3242492\\
+        $|V\ type|$ & 3\\
+        $|Y|$ & 2\\
+        Labels & truth value\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The entity of news articles are the central part of this dataset; they are the channel through which users and news sources interact with one another. The users post and comment on a news piece via \textit{tweets}.
+
+Each news article can be either fake or real. 
+For each news, the corresponding label was collected from the websites PolitiFact and Snopes, two popular fact checking websites mainly focusing on U.S. politics.
+These websites were created in an attempt to fact check information or political statement made from news, sources and politicians.
+
+\begin{table}[h]
+    \centering
+    \caption{Statistics about the network entities.}
+    \label{tab:dataset:entities}
+    \begin{tabular}{cc}
+        \toprule
+        Fake news & 448\\
+        Real news & 606\\
+        Source & 442\\
+        Users & 54461\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Interactions can be separated in two categories: those with a single label, between sources, news and users and those with multiple labels, between a user and a news article.
+For the first category, we have the following label alongside the interaction it represents:
+\begin{itemize}
+    \item citations, between source and source.
+        A news source can cite other news sources in an article.
+    \item relationship, between user and user.
+        On Twitter, user can interact with other users, through replies and mentions on a \textit{tweet}.
+    \item publications, between source and news article. News source process information and, published through news articles.
+\end{itemize}
+
+The second group of interactions, \textit{stance}, exclusively concern user and news article.
+Here, multi-labels is necessary because users can have different reactions and attitudes towards a piece of news.
+For this group, we have the following label and the meaning behind it:
+\begin{itemize}
+    \item negative support, a negative reaction supporting the news article statement.
+        A user agrees with a piece of information and reacts in a negative manner towards it. 
+    \item neutral support, a neutral reaction supporting the news article statement.
+        A user agrees with a piece of information but reacts in a neutral manner.
+    \item deny, a reaction denying the news article statement.
+        A user denies a statement from a piece of information.
+    \item a report, a verbatim reporting of the new article.
+        A user reposts the information using similar words from the original news article.
+\end{itemize}
+
+The dataset also has timestamps for each \textit{tweet}.
+This metric is very useful to measure the amount of reactions a news article receives through time.
+
+\section{FANG: Available Data}
+
+In this section, we take a look at the available raw data in FANG's dataset.
+The repository provides some of the raw data and pre-processed dataset. 
+The code to process the data is not made available by the authors.
+In an attempt to recreate the preprocessed misinformation dataset, we wanted to know how much of the original data we could retrieve back today in 2023.
+
+FANG's author link the FakeNewsNet code to crawl the unprocessed data.
+In its raw, unprocessed form, FANG's data is separated in two comma separated values (CSV) files: one for fake news article and one for real ones.
+Each CSV provides a list news id, URL to the news source, title of the news article, and a list of unique \textit{tweets} which took a stance towards the news article.
+Table~\ref{tab:fang_raw_data} illustrates a single line of this raw data.
+
+\begin{table}[h]
+    \caption{Example of raw data for a real news article.}
+    \label{tab:fang_raw_data}
+    \begin{tabular}{cl}
+        \toprule
+        news id & pheme\_144\\
+        news URL & \verb| https://www.reuters.com/article/us-australia-security/...|\\
+        % https://www.reuters.com/article/us-australia-security/hostages-held-in-sydney-cafe-islamic-flag-seen-in-window-local-tv-idUSKBN0JS0WX20141214?feedType=RSS&feedName=topNews&utm_source=twitter
+        title & "Hostages held in Sydney cafe, Islamic flag seen in window: local TV"\\
+        User list & \{ 544289893401522177, 544281840358801408, 544289496758362113, \dots \} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+This means that we technically could scrap some of the data.
+We can get back the users' original \textit{tweet} that interacted with a news piece using the unique tweet ID.
+However recent changes in Twitter's API policy means we cannot crawl Twitter and the \textit{tweets}.
+
+We must then evaluate the user stance towards the news article.
+To tune the sentiment, FANG's authors used a large scaled pre-trained model named ROBERTa. They trained the model on the Yelp Review Polarity dataset to further classify neutral and negative sentiment.
+Pre-trained model such as ROBERTa are now widely available for download online on model sharing platform.
+The Yelp Review Polarity dataset is also widely available online.
+It would be therefore possible to download the model and the dataset and train the model to evaluate the user stance.
+
+To get the additional data crawled for the media sources, we could use the provided URL and crawl the \textit{Homepage} and \textit{About Us} sections.
+This information could be crawled by visiting the news source website using the news article URL.
+The code to crawl the news source is not provided.
+
+This means we cannot get the stances of the users towards a news article.
+
+Scraping and reconstructing the dataset is outside of the scope of this bachelor thesis.
+But it is worth knowing that with some effort, some part of the dataset could be reconstructed.
+We will therefore rely on the preprocessed data made available with FANG.
+
+\subsection{From Heterogeneous to Homogeneous}
+\label{sub:h2h}
+
+Deepwalk and node2vec, the algorithms discussed later in this chapter, can only be used with homogeneous graph.
+Because our network is heterogeneous, we must transform it by removing the entities types.
+
+We obtain a transformed homgeneous network by assigning a unique index to each entity, no matter the type, in the entity list of the network.
+We then map for an entity the corresponding index to each vertices in the graph.
+This results in the same network \textit{G} but homogeneous.
+
+We then build the graph from the resulting homgeneous edgelist and verify that each entity is present in our resulting graph.
+This graph greatly simplifies computing the adjacency list and edgelist for each entity, lists used as input data for the DeepWalk and node2vec algorithm.

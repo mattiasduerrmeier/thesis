@@ -3,52 +3,6 @@
 \chapter{FANG} % (fold)
 \label{cha:fang}
 
-\section{FANG Dataset: Available Data}
-
-In this section, we take a look at the available raw data in FANG's dataset.
-The repository provides the raw and processed dataset. 
-The code to process the data is not made available by the authors.
-In an attempt to recreate the preprocessed misinformation dataset, we wanted to know how much of the original data we could retrieve back today in 2023.
-
-FANG's author link the FakeNewsNet code to crawl the unprocessed data.
-In its raw, unprocessed form, FANG's dataset comes with two comma separated values (CSV) files: one for fake news article and one for real ones.
-Each CSV provides a list news id, URL to the news source, title of the news article, and a list of unique \textit{tweets} which took a stance towards the news article.
-
-\begin{table}[h]
-    \caption{Example of raw data for a real news article.}
-    \label{tab:fang_raw_data}
-    \begin{tabular}{cl}
-        \toprule
-        news id & pheme\_144\\
-        news URL & \verb| https://www.reuters.com/article/us-australia-security/...|\\
-        % https://www.reuters.com/article/us-australia-security/hostages-held-in-sydney-cafe-islamic-flag-seen-in-window-local-tv-idUSKBN0JS0WX20141214?feedType=RSS&feedName=topNews&utm_source=twitter
-        title & "Hostages held in Sydney cafe, Islamic flag seen in window: local TV"\\
-        User list & \{ 544289893401522177, 544281840358801408, 544289496758362113, \dots \} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-This means that we technically could scrap some of the data.
-We can get back the users' original \textit{tweet} that interacted with a news piece using the unique tweet ID.
-
-We must then evaluate the user stance towards the news article.
-To tune the sentiment, FANG's authors used a large scaled pre-trained model named ROBERTa. They trained the model on the Yelp Review Polarity dataset to further classify neutral and negative sentiment.
-Pre-trained model such as ROBERTa are now widely available for download online on model sharing platform.
-The Yelp Review Polarity dataset is also widely available online.
-It would be therefore possible to download the model and the dataset and train the model to evaluate the user stance.
-
-To get the additional data crawled for the media sources, we could use the provided URL and crawl the \textit{Homepage} and \textit{About Us} sections.
-This information could be crawled by visiting the news source website using the news article URL.
-The code to crawl the news source is not provided.
-
-However recent changes in Twitter's API policy means we cannot crawl the unprocessed tweets directly.
-This means we cannot get the stances of the users towards a news article.
-
-Scraping and reconstructing the dataset is outside of the scope of this bachelor thesis.
-But it is worth knowing that with some effort, some part of the dataset could be reconstructed.
-We will therefore rely on the preprocessed data made available with FANG.
-
-\newpage
 \section{FANG Test Run on CPU}
 
 FANG uses the PyTorch library. 
