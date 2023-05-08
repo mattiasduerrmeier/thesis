@@ -1,0 +1,259 @@
+% !TEX root = ../main.tex
+
+\chapter{Experiments} % (fold)
+\label{cha:Experiments}
+
+\section{Misinformation Dataset}
+
+FakeNewsNet is a dataset collected from the Twitter social media platform, made of political \textit{tweets}.
+The original dataset along with its paper was first published in September of 2018.
+In this thesis, we specifically work with a pre-processed subset of this dataset, made available alongside the Factual News Graph (FANG) source code. We will refer to this datset as the misinformation dataset.
+
+This misinformation dataset is a heterogeneous network: the vertices are not all of a same and unique type.
+An entity can be of type user, news article or news source.
+Edges can be between entities of the same or different type.
+This dataset contains over 3 millions edges, named interactions in this context.
+
+\begin{table}[h]
+    \centering
+    \caption{Statistics about the misinformation network.}
+    \label{tab:dataset:network}
+    \begin{tabular}{cc}
+        \toprule
+        $|V|$ & 55957\\
+        $|E|$ & 3242492\\
+        $|V\ type|$ & 3\\
+        $|Y|$ & 2\\
+        Labels & truth value\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The entity of news articles are the central part of this dataset; they are the channel through which users and news sources interact with one another. The users post and comment on a news piece via \textit{tweets}.
+
+Each news article can be either fake or real. 
+For each news, the corresponding label was collected from the websites PolitiFact and Snopes, two popular fact checking websites mainly focusing on U.S. politics.
+These websites were created in an attempt to fact check information or political statement made from news, sources and politicians.
+
+\begin{table}[h]
+    \centering
+    \caption{Statistics about the network entities.}
+    \label{tab:dataset:entities}
+    \begin{tabular}{cc}
+        \toprule
+        Fake news & 448\\
+        Real news & 606\\
+        Source & 442\\
+        Users & 54461\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Interactions can be separated in two categories: those with a single label, between sources, news and users and those with multiple labels, between a user and a news article.
+For the first category, we have the following label alongside the interaction it represents:
+\begin{itemize}
+    \item citations, between source and source.
+        A news source can cite other news sources in an article.
+    \item relationship, between user and user.
+        On Twitter, user can interact with other users, through replies and mentions on a \textit{tweet}.
+    \item publications, between source and news article. News source process information and, published through news articles.
+\end{itemize}
+
+The second group of interactions, \textit{stance}, exclusively concern user and news article.
+Here, multi-labels is necessary because users can have different reactions and attitudes towards a piece of news.
+For this group, we have the following label and the meaning behind it:
+\begin{itemize}
+    \item negative support, a negative reaction supporting the news article statement.
+        A user agrees with a piece of information and reacts in a negative manner towards it. 
+    \item neutral support, a neutral reaction supporting the news article statement.
+        A user agrees with a piece of information but reacts in a neutral manner.
+    \item deny, a reaction denying the news article statement.
+        A user denies a statement from a piece of information.
+    \item a report, a verbatim reporting of the new article.
+        A user reposts the information using similar words from the original news article.
+\end{itemize}
+
+The dataset also has timestamps for each \textit{tweet}.
+This metric is very useful to measure the amount of reactions a news article receives through time.
+
+\subsection{From Heterogeneous to Homogeneous}
+\label{sub:h2h}
+
+Deepwalk and node2vec, the algorithms discussed later in this chapter, can only be used with homogeneous graph.
+Because our network is heterogeneous, we must transform it by removing the entities types.
+
+We obtain a transformed homgeneous network by assigning a unique index to each entity, no matter the type, in the entity list of the network.
+We then map for an entity the corresponding index to each vertices in the graph.
+This results in the same network \textit{G} but homogeneous.
+
+We then build the graph from the resulting homgeneous edgelist and verify that each entity is present in our resulting graph.
+This graph greatly simplifies computing the adjacency list and edgelist for each entity, lists used as input data for the DeepWalk and node2vec algorithm.
+
+\newpage
+\section{DeepWalk}
+
+Deepwalk is an algorithm to learn latent representation in a network.
+It is the first of its kind to take successful techniques usually reserved for natural language processing and apply them to network analysis.
+
+To learn the features and relations between vertices, the algorithm walks randomly through a network.
+Deepwalk is a form of unsupervised learning: the model learns independently from the labels, if available.
+This makes it a powerful algorithm for finding latents representation in very large networks even with sparse data.
+
+Deepwalk is based primarily on the SkipGram model, often referred to as \textit{word2vec}. 
+\textit{Word2vec} is a technique created for natural language processing published in 2013.
+It is used to perform word embeddings: in a higher dimensional space, words of similar meaning and used in similar context are grouped together, away from the words used in a different context.
+Here, Deepwalk applies this technique to learn the relationship between nodes in a network.
+The idea behind it is to treat a network as a document.
+Since we're working with network, the SkipGram model is trained with each random walk performed.
+In natural language processing, \textit{word2vec} represents words with similar meaning close to another in the resulting embedding space; in Deepwalk, this will be the case for nodes with similar features.
+
+Deepwalk has four main hyperparameters which can be tuned to obtain a better representation of the network.
+We can choose the size of the context of a SkipGram model: in NLP, this is the number of words included before and a after a word to then chose the next one.
+With a network, this will be the number of neighboring vertices to take into account for the next random walk.
+
+In addition, the output embedding can be tuned via the embedding size \textit{d}.
+This is the number of latent dimensions we want to have for a graph.
+A higher or lower dimensionality can result in a better representation of the network in the embedding space.
+However more dimensions does not necessarily mean better results.
+It is important to find the right hyperparameter which leads to the best results.
+
+We can set the number of random walk started at each vertex with the parameter \textit{\gamma}, and the length of each random walk with the parameter \textit{t}.
+Through these parameters, we can tune DeepWalk's random walk behaviour. 
+Depending on the network, we might prefer DeepWalk to do numerous short walk or few long ones.
+
+\subsection{DeepWalk With Disinformation Dataset and Parameters Sensitivity}
+
+We used DeepWalk algorithm on our disinformation dataset.
+For this experiment we perform the graph embedding on the adjacency list discussed in subsection~\ref{sub:h2h}.
+In a text, more context helps the algorithm to better understand the meaning of a word and how to place them in the embedding space.
+Similarly, more vertices helps gain information on the network underlying function.
+For this reason, we use the entire network data to perform the embedding.
+
+The resulting embedding representation is then cleaned from users and sources entities so that we score only the news articles.
+To transform the network to homogeneous, we assigned a unique index for each entity and mapped it to the graph's edge list.
+Conveniently, we can reuse this mapping to now remove all indexes which are not news entities.
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/deepwalk/deepwalk-plot-dimensions-window-size.pgf}}
+        \label{fig:deepwalk:representation window size}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/deepwalk/deepwalk-plot-number-length-walk.pgf}}
+        \label{fig:deepwalk:number walk length}
+    \end{subfigure}
+    \caption{DeepWalk results.}
+    \label{fig:deepwalk:plots}
+\end{figure}
+
+A new classification model is trained on the cleaned embedding to classify fake and real news.
+We use the news labels provided with the dataset as targets.
+Ideally news should be grouped together by veracity in the resulting embedding space since they share similar characteristics.
+Here, we want to test if DeepWalk was able to group them well.
+
+To obtain the best performance, each hyperparameter of the algorithm is tuned one after the other.
+We first tune the number of dimensions \textit{d}, with all the other parameters set to their respective default.
+We select the number of dimensions which resulted in the best F-score.
+This value is then used for all remaining parameters tuning.
+This process is repeated for the \textit{w}, \textit{\gamma} and \textit{t} parameters in this order.
+We always use the best parameter value for the parameters previously tuned, and leave the other left to tune to their default values.
+
+Figure~\ref{fig:deepwalk:plots} showcases the F-score obtained for all 4 parameters tuning.
+
+For DeepWalk, the best parameters are $d=64, w=10, \gamma=20, t=40$.
+For the misinformation network, DeepWalks prefer few but quite short random walks with an average number of vertices to chose from.
+
+\newpage
+\section{Node2vec}
+
+The node2vec algorithm uses a similar embedding approach as DeepWalk: random walks through the network to learn latent features.
+
+However node2vec's authors found that purely random walk sometimes did not give the best possible result.
+Indeed if the walks are purely random, we could obtain very different embeddings between two instances of DeepWalk on the same network.
+For this reason, they decided to add two additional hyperparameters: tuning for breadth first search and depth first search.
+These two concepts can be tuned through the return parameter denoted \textit{p} and in-out parameter denoted \textit{q}.
+These two parameters are probability and influences the exploration of the network.
+They are used as $1/p$ and $1/p$ by the algorithm in the graph.
+
+The return parameter controls how often the algorithm revisits a node previously visited in the network.
+Thanks to this parameter, we can tune the random walks behaviour.
+A high value for this parameter makes it less likely we revisit a node and encourages exploration.
+While A low value ensure the algorithm walks closely to the starting node.
+
+The in-out parameter controls the probability to visit not yet visited neighbours. A high value will encourage exploration away from the neighborhood while a low value will lead to a more conservative walk on the graph. 
+
+\subsection{Node2vec with Disinformation Dataset and Parameters Sensitivity}
+
+Just like for Deepwalk, we again perform the embedding with node2vec on the integrity of the network to gain from the additional context provided by users and news source.
+We always clean the resulting embedding, since we want to perform the classification on the news entity only.
+
+Before tuning the four hyperparameters for the output embedding, we must first tune the \textit{p} and \textit{q} parameters.
+We obtained embeddings by iterating over these two parameters with a set of 5 values for each, for a total of 25 runs. All other parameters are set to their default.
+Table~\ref{tab:node2vec:pqMicro} shows us the micro F1 score obtained by tuning these parameters.
+We obtain $p=2$ and $q=1$ as the best parameters for the node2vec with the fake news dataset.
+\begin{table}[h]
+    \centering
+    \caption{Micro F1 score for $p$ and $q$.}
+    \label{tab:node2vec:pqMicro}
+    \begin{tabular}{llllll}
+        \diagbox[height=0.8cm]{p}{q} & 0.25 & 0.5 & 1.0 & 2.0 & 4.0 \\
+        0.25 & 0.6564 & 0.6720 & 0.6550 & 0.6583 & 0.6564 \\
+        0.5 & 0.6493 & 0.6635 & 0.6687 & 0.6408 & 0.6450 \\
+        1.0 & 0.6649 & 0.6848 & 0.6536 & 0.6640 & 0.6588 \\
+        2.0 & 0.6829 & 0.6716 & \bfseries 0.6943 & 0.6744 & 0.6654 \\
+        4.0 & 0.6749 & 0.6739 & 0.6773 & 0.6540 & 0.6815 \\
+    \end{tabular}
+\end{table}
+
+Just like for DeepWalk, when then tune each four hyperparameters so we can obtain the best possible results for this algorithm on our dataset.
+We first tune the number of dimensions and leave all other parameters left to tune to their default. 
+We pick the parameter value for the number of dimensions which gave the best F1 score and use this value for all next runs. 
+The parameters which gave the best F1 score for each run is picked for the tuning of the following parameters.
+We continue doing this for the window size, the random walk length and the number of random walk. 
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/node2vec/node2vec-plot-dimensions-window-size.pgf}}
+        \label{fig:node2vec:representation and window size}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \scalebox{.5}{\input{figures/plots/node2vec/node2vec-plot-number-length-walk.pgf}}
+        \label{fig:node2vec:number and walk length}
+    \end{subfigure}
+    \caption{Node2vec results.}
+    \label{fig:deepwalk:plots}
+\end{figure}
+
+\section{DeepWalk and Node2vec Results Discussion}
+The parameters which resulted in the best score for node2vec on our disinformation dataset are $p=2, q=1, d=128, w=1, \gamma=60,t=20 $.
+
+for node2vec, the best window size parameter was 1, compared with 10 for DeepWalk.
+This means that node2vec consider only one possible node for the next step of the random walk.
+We believe this strong difference in window size between the two algorithm could be due to the additional p and q hyperparameters of node2vec.
+With a value of $p=2, q=1$, node2vec prioritize exploration over revisiting known nodes.
+Because our graph is highly connected, network exploration means fewer but longer random walk, as we can see from $\gamma=60$ and $t=20$ for node2vec.
+The hyperparameters $\gamma=20$ and $t=40$ shows that DeepWalk prioritize network exploration through randomness, with shorter but more numerous walks.
+
+Compared with DeepWalk, we can a see slightly better performance improved by node2vec.
+DeepWalk strictly performs the network exploration randomly. 
+Node2vec has a small edge here, because its walks can be influenced through $p$ and $q$ parameters.
+In a large network such as the misinformation dataset we use here, this improves the graph exploration slightly.
+In our best result, we prioritize exploration of unknown nodes on the network over already visited ones.
+This leads to a slight but significant improvement in the algorithm's network knowledge and thus a better representation in the resulting embeddings. 
+
+\section{DeepWalk and node2vec results compared FANG}
+Note: I think this should be talked after obtaining a score for FANG.
+
+With our two algorithms best performance, we can now compare their performance compared to FANG.
+In FANG's original paper, its performance was measured with Area Under the ROC Curve, AUC for short.
+We measure the performance of Deepwalk and node2vec with the best parameters obtained and with AUC score.
+
+We can now compare the performance of both algorithm with the Factual News Graph (FANG).
