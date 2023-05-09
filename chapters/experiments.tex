@@ -162,11 +162,53 @@ In a large network such as the misinformation dataset we use here, this improves
 In our best result, we prioritize exploration of unknown nodes on the network over already visited ones.
 This leads to a slight but significant improvement in the algorithm's network knowledge and thus a better representation in the resulting embeddings. 
 
-\section{DeepWalk and node2vec results compared FANG}
-Note: I think this should be talked after obtaining a score for FANG.
+\newpage
+\section{Score Comparsion}
 
 With our two algorithms best performance, we can now compare their performance compared to FANG.
 In FANG's original paper, its performance was measured with Area Under the ROC Curve, AUC for short.
-We measure the performance of Deepwalk and node2vec with the best parameters obtained and with AUC score.
+Conveniently FANG also produces a F1 score when we perform it on our dataset.
+We will therefore use both metrics to compare the performance of these algorithms.
 
-We can now compare the performance of both algorithm with the Factual News Graph (FANG).
+We measured the performance of Deepwalk and node2vec on an embedding performed with the best parameters, discussed previsouly in chapter~\ref{cha:Experiments}.
+For FANG, we enabled all hyperparameters such that it uses all available context, therefore obtain the best performance possible.
+
+\begin{table}[h]
+    \centering
+    \caption{Comparison between models, evaluated with F1 score and AUC.}
+    \label{tab:}
+    \begin{tabular}{lcc}
+        \toprule
+        Model & F1 score (micro) & AUC \\
+        \midrule
+        DeepWalk & 0.6810 & 0.6493 \\
+        node2vec & 0.6844 & 0.6654 \\
+        % these are temporary values at only 10%!
+        FANG (10\%) & 0.5828 & 0.6479 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+We can now compare these metrics of both algorithm with the one from Factual News Graph (FANG).
+
+\iffalse
+\subsubsection{Notes}
+
+Just like Deepwalk and node2vec, FANG produces both F1 score and AUC using the sklearn library.
+The AUC uses the default ($average=macro$).
+
+However the F1 produced uses $average=binary$.
+We have F1 micro and macro score for DeepWalk and node2vec.
+Which one should we use, or do we need to run the program with binary F1?
+
+%%%%% RAW SCORE %%%%%
+% DEEPWALk
+% F1 score Average score: {'micro': 0.6810426540284359, 'macro': 0.6675884947364201}
+% AUC Average score: {'micro': 0.6668246445497629, 'macro': 0.6492556721962208}
+
+% NODE2VEC
+% F1 score Average score: {'micro': 0.6843601895734597, 'macro': 0.6642412717978502}
+% AUC Average score: {'micro': 0.6909952606635071, 'macro': 0.6654164938979849}
+%%%%% RAW SCORE %%%%%
+
+% 80% of the data would mean 843 news article to train on
+\fi
