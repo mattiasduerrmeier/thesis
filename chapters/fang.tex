@@ -3,9 +3,34 @@
 \chapter{FANG} % (fold)
 \label{cha:fang}
 
+\section{Hyperparameters}
+
+FANG has four hyperparameters which can be either activated or deactivated: temporality, stance, proxmity and attention.
+Table~\ref{tab:fang:hyperparameters}lists the AUC scores obtained with FANG trained with 80\% of the data.
+We progressively activated the hyperparameters one by one until all were used.
+We otain these scores by running FANG on the misinformation dataset explored in chatpter~\ref{cha:Dataset}.
+
+\begin{table}[h]
+    \centering
+    \caption{FANG AUC scores with some hyperparameters combination.}
+    \label{tab:fang:hyperparameters}
+    \begin{tabular}{ccccc}
+        \toprule
+        Attention & Stance & Proximity & Temporality & AUC Score \\
+        \midrule
+        \checkmark & & & & 0.0 \\
+        \checkmark & \checkmark & & & 0.0 \\
+        \checkmark & \checkmark & \checkmark & & 0.0 \\
+        \checkmark & \checkmark & \checkmark & \checkmark & 0.0 \\
+        \midrule
+        \checkmark & \checkmark & \checkmark & \checkmark & \textbf{0.0} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\newpage
 \section{FANG Test Run on CPU}
 
-FANG uses the PyTorch library. 
 Typically neural network model of this complexity and size are trained on GPU.
 
 For testing, a CPU flag was created: this allows to train FANG on a machine that only has a CPU.
@@ -46,3 +71,39 @@ However we expected to see FANG's score value climb much faster than DeepWalk an
     'auc': 0.647859188903965, 
     'loss': 0.702542781829834}
 \end{lstlisting}
+
+\newpage
+\section{Code Structure}
+This is a temporary section, just to have notes when we discuss the code.
+\newline
+FANG has the following flags to use:
+\begin{itemize}
+    \item the task: fang or news graph.
+    \item the model: graphSAGE or GCN. GraphSAGE can only be used with FANG, and GCN only with news graph.
+    \item percent: Percentage for the size of the training set. 10, 30, 50, 70, 90. Hardcoded in JSON files.
+    \item temporal: whether to use temporality or not. Default to false. 
+    \item stance: whether to use stance or not. Default to false.
+    \item promixity: whether to use proximity. Default to false.
+    \item attention: whether to use attention. Default to false.
+
+\end{itemize}
+\vspace{5mm}
+In terms of directories and file:
+\begin{itemize}
+    \item data/: directory for the FANG dataset. Processed and unprocessed.
+    \item dataset/: for the NewsGraph class. This is to run news graph instead of FANG.
+    \item fang/: everything related to graphSAGE: implementation, building the graph, loading the data in the graph. Also FakeNewsClassifier and StanceClassifier classes.
+    \item graph/: GCN and NGCN. The code only uses NGCN.
+    \item training/: for the training of FANG.
+    \item use\_embed/: for embedding the users in graphSAGE.
+    \item run\_graph.py: this is where FANG begins.
+\end{itemize}
+\vspace{5mm}
+
+code flow:
+\begin{itemize}
+    \item start in run\_graph.py. We can either run news\_graph or fang.
+    \item news\_graph goes into \verb|training/news_graph.py|. The required model is GCN. It build a NGCN as model. It trains the model, validates and tests it.
+    \item fang requires the model to be graphSAGE. The program goes to \verb|fang/graphsage/|. It loads the dataset and a lot of parameters. 
+    \item It build the FANG graph, create a StanceClassifier and a FakeNewsClassifier. It starts training, testing and validation.
+\end{itemize}
